@@ -1,0 +1,58 @@
+# Bootstrap Configuration
+# This file contains settings for the bootstrap.sh script
+
+# System Configuration
+timezone: "America/New_York"
+hostname: "linux-workstation"
+locale: "en_US.UTF-8"
+
+# Package Management
+update_system: true
+upgrade_system: true
+
+# Essential Packages
+install_essentials: true
+essential_packages:
+  - git
+  - curl
+  - wget
+  - vim
+  - htop
+  - tmux
+  - zsh
+  - unzip
+
+# System Settings
+configure_swap: true
+swap_size: "4G"  # Set to "0" to disable swap
+
+# Users and Groups
+create_users: true
+users:
+  - username: "developer"
+    groups: ["sudo", "docker", "vboxusers"]
+    shell: "/bin/zsh"
+
+# SSH Configuration
+configure_ssh: true
+ssh_port: 22
+permit_root_login: "no"
+password_authentication: "no"
+
+# Firewall Configuration
+configure_firewall: true
+firewall_rules:
+  - port: "22/tcp"
+    description: "SSH"
+  - port: "80/tcp"
+    description: "HTTP"
+  - port: "443/tcp"
+    description: "HTTPS"
+
+# System Updates
+automatic_updates: true
+update_schedule: "weekly"  # daily, weekly, monthly
+
+# Logging
+log_level: "info"  # debug, info, warning, error
+log_file: "/var/log/bootstrap.log"

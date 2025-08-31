@@ -1,0 +1,112 @@
+# Performance Tuning Configuration
+# This file contains settings for the system_optimizer.sh script
+
+# General Settings
+log_level: "info"
+log_file: "/var/log/performance_optimizer.log"
+backup_configs: true
+
+# CPU Optimization
+cpu:
+  governor: "performance"  # Options: performance, powersave, ondemand, conservative
+  energy_perf_bias: "performance"  # Options: performance, normal, powersave
+  boost: true  # Enable CPU turbo boost if available
+  min_perf_pct: 100  # Minimum CPU performance percentage
+  max_perf_pct: 100  # Maximum CPU performance percentage
+
+# Memory Optimization
+memory:
+  swappiness: 10  # 0-100, lower favors keeping files in memory
+  vfs_cache_pressure: 50  # 0-100, tendency to reclaim cache memory
+  dirty_ratio: 10  # Maximum percentage of dirty memory
+  dirty_background_ratio: 5  # Background writeback threshold
+  transparent_hugepages: "always"  # Options: always, madvise, never
+  overcommit_memory: 1  # 0: heuristic, 1: always, 2: never overcommit
+  overcommit_ratio: 80  # Percentage of RAM+swap available for overcommit
+
+# I/O Optimization
+io:
+  scheduler:  # Default: bfq for HDDs, none for SSDs
+    hdd: "bfq"
+    ssd: "none"
+  read_ahead_kb: 4096  # Read-ahead buffer size in KB
+  nr_requests: 128  # Number of requests in block layer queue
+  max_sectors_kb: 512  # Maximum size of a single I/O request
+  add_random: 0  # Disable entropy contribution for faster SSD performance
+  iostats: 0  # Disable I/O statistics for better performance
+
+# Network Optimization
+network:
+  tcp_congestion_control: "bbr"  # Options: bbr, cubic, reno
+  tcp_fastopen: 3  # 0: disabled, 1: client only, 2: server only, 3: both
+  tcp_tw_reuse: 1  # Reuse TIME-WAIT sockets
+  tcp_fin_timeout: 30  # Time to hold socket in FIN-WAIT-2 state
+  tcp_max_syn_backlog: 8192  # Maximum number of remembered connection requests
+  tcp_max_tw_buckets: 2000000  # Maximum number of TIME_WAIT sockets
+  tcp_keepalive_time: 300  # How often TCP sends keepalive probes
+  tcp_keepalive_intvl: 15  # Time between keepalive probes
+  tcp_keepalive_probes: 5  # Number of unacknowledged probes before dropping connection
+  tcp_slow_start_after_idle: 0  # Disable slow start after idle
+  tcp_mtu_probing: 1  # Enable path MTU discovery
+  tcp_sack: 1  # Enable Selective ACKnowledgements
+  tcp_fack: 1  # Enable Forward ACKnowledgements
+  tcp_timestamps: 1  # Enable TCP timestamps for RTT calculation
+
+# Filesystem Optimization
+filesystem:
+  atime_update: 0  # 0: noatime, 1: atime, 2: relatime
+  dir_notify_enable: 1  # Enable inotify for filesystem events
+  max_user_watches: 524288  # Maximum number of inotify watches
+  max_user_instances: 128  # Maximum number of inotify instances
+  max_queued_events: 16384  # Maximum number of queued events
+
+# System Limits
+limits:
+  nofile: 1048576  # Maximum number of open files
+  nproc: 65535  # Maximum number of processes
+  memlock: 16777216  # Maximum locked-in-memory address space (KB)
+  stack: 8388608  # Maximum stack size (KB)
+
+# Service Optimization
+services:
+  disable_crash_dumps: true
+  disable_swap: false  # Only disable if you have enough RAM
+  disable_selinux: false  # Only disable if not needed
+  disable_iptables: false  # Only disable if using alternative firewall
+  disable_avahi: true  # Disable mDNS if not needed
+  disable_cups: true  # Disable printer services if not needed
+  disable_bluetooth: true  # Disable Bluetooth if not needed
+
+# Kernel Parameters
+kernel:
+  transparent_hugepage: "always"
+  hugepages: 0  # Set to number of 2MB pages to allocate (0 = auto)
+  hugepagesz: "1G"  # Hugepage size: 2M or 1G
+  shmmax: 68719476736  # Maximum shared memory segment size (bytes)
+  shmall: 4294967296  # Total shared memory pages
+  msgmax: 65536  # Maximum size of a message (bytes)
+  msgmnb: 65536  # Maximum size of a message queue (bytes)
+  msgmni: 16384  # Maximum number of message queue identifiers
+  sem: "250 32000 100 128"  # semmsl, semmns, semopm, semmni
+
+# Hardware Specific
+hardware:
+  # Disk I/O Scheduler (set automatically based on disk type)
+  disk_scheduler: "auto"
+  
+  # CPU Frequency Scaling
+  cpu_governor: "performance"
+  
+  # Power Management
+  power_save: false  # Disable power saving features for better performance
+  
+  # Network Interface Buffer Sizes
+  netdev_max_backlog: 100000
+  netdev_budget: 50000
+  netdev_budget_usecs: 5000
+  
+  # Virtual Memory
+  vm_dirty_ratio: 10
+  vm_dirty_background_ratio: 5
+  vm_swappiness: 10
+  vm_vfs_cache_pressure: 50

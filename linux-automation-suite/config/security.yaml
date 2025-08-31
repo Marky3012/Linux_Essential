@@ -1,0 +1,92 @@
+# Security Configuration
+# This file contains settings for the security_hardening.sh script
+
+# General Settings
+log_level: "info"
+log_file: "/var/log/security_hardening.log"
+
+# System Updates
+update_system: true
+upgrade_system: true
+
+# SSH Configuration
+ssh_port: 2222
+permit_root_login: "no"
+password_authentication: "no"
+x11_forwarding: "no"
+max_auth_tries: 3
+login_grace_time: 60
+
+# Firewall Configuration
+firewall_enabled: true
+allowed_ports:
+  - "2222/tcp"  # SSH
+  - "80/tcp"    # HTTP
+  - "443/tcp"   # HTTPS
+
+# Network Security
+disable_ipv6: false
+enable_syn_cookies: true
+enable_ip_forwarding: false
+
+# Kernel Hardening
+enable_selinux: true
+enable_apparmor: true
+restrict_suid: true
+
+# File System Security
+sticky_bit_on_world_writable_dirs: true
+secure_umask: "027"
+
+# User Account Security
+password_policy:
+  min_days: 7
+  max_days: 90
+  warn_age: 14
+  min_length: 12
+  remember: 5
+
+# System Auditing
+auditd_enabled: true
+audit_rules:
+  - "-w /etc/passwd -p wa -k identity"
+  - "-w /etc/group -p wa -k identity"
+  - "-w /etc/shadow -p wa -k identity"
+  - "-w /etc/sudoers -p wa -k scope"
+  - "-w /var/log/auth.log -p wa -k authlog"
+
+# System Services
+unwanted_services:
+  - "telnet"
+  - "rsh"
+  - "rlogin"
+  - "ypbind"
+  - "ypserv"
+
+# File Permissions
+secure_file_permissions:
+  - path: "/etc/passwd"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  - path: "/etc/shadow"
+    mode: "0640"
+    owner: "root"
+    group: "shadow"
+  - path: "/etc/group"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+
+# SSH Hardening
+ssh_hardening:
+  protocol: 2
+  ignore_rhosts: "yes"
+  hostbased_authentication: "no"
+  permit_empty_passwords: "no"
+  permit_user_environment: "no"
+  client_alive_interval: 300
+  client_alive_count_max: 2
+  max_startups: "10:30:60"
+  allow_users: ""  # Space-separated list of allowed users
+  allow_groups: "" # Space-separated list of allowed groups

@@ -1,0 +1,216 @@
+# Service Management Configuration
+# This file contains settings for the service_manager.sh script
+
+# System Information
+system:
+  role: "desktop"  # Options: desktop, server, laptop
+  hostname: ""  # Leave empty to use system hostname
+  timezone: ""  # Leave empty to use system timezone
+
+# Service Configuration
+services:
+  # System Services
+  - name: "apparmor"
+    enabled: true
+    description: "Mandatory Access Control system for Linux"
+    category: "security"
+    
+  - name: "auditd"
+    enabled: true
+    description: "Audit system for security-relevant events"
+    category: "security"
+    
+  - name: "cron"
+    enabled: true
+    description: "Time-based job scheduler"
+    category: "system"
+    
+  - name: "dbus"
+    enabled: true
+    description: "Message bus system"
+    category: "system"
+    
+  - name: "irqbalance"
+    enabled: true
+    description: "Distributes hardware interrupts across processors"
+    category: "performance"
+    
+  - name: "network-manager"
+    enabled: true
+    description: "Network connection manager"
+    category: "network"
+    
+  - name: "rsyslog"
+    enabled: true
+    description: "System logging service"
+    category: "system"
+    
+  - name: "ssh"
+    enabled: true
+    description: "Secure Shell server"
+    category: "network"
+    
+  - name: "systemd-journald"
+    enabled: true
+    description: "System logging daemon"
+    category: "system"
+    
+  - name: "systemd-timesyncd"
+    enabled: true
+    description: "Network time synchronization"
+    category: "system"
+    
+  - name: "ufw"
+    enabled: true
+    description: "Uncomplicated Firewall"
+    category: "security"
+
+# Services to disable (for optimization)
+disable_services:
+  - name: "avahi-daemon"
+    description: "mDNS/DNS-SD service"
+    reason: "Not needed on most systems"
+    
+  - name: "cups"
+    description: "Printing service"
+    reason: "Disable if no printers are used"
+    
+  - name: "bluetooth"
+    description: "Bluetooth service"
+    reason: "Disable if Bluetooth is not used"
+    
+  - name: "ModemManager"
+    description: "Mobile broadband modem management"
+    reason: "Disable if no mobile broadband is used"
+    
+  - name: "whoopsie"
+    description: "Ubuntu error reporting"
+    reason: "Not needed for most users"
+
+# Service Optimization Profiles
+profiles:
+  # Desktop Profile (default)
+  desktop:
+    description: "Optimized for desktop/laptop use"
+    services:
+      enable:
+        - "network-manager"
+        - "bluetooth"  # Enabled for desktop use
+        - "cups"       # Enabled for printing
+      disable:
+        - "apache2"
+        - "mysql"
+        - "postgresql"
+  
+  # Server Profile
+  server:
+    description: "Optimized for server use"
+    services:
+      enable:
+        - "ssh"
+        - "ufw"
+        - "fail2ban"
+      disable:
+        - "bluetooth"
+        - "cups"
+        - "avahi-daemon"
+  
+  # Laptop Profile
+  laptop:
+    description: "Optimized for laptop use"
+    services:
+      enable:
+        - "tlp"
+        - "bluetooth"
+        - "power-profiles-daemon"
+      disable:
+        - "apache2"
+        - "mysql"
+        - "postgresql"
+
+# Service Categories
+categories:
+  system:
+    description: "Core system services"
+    services:
+      - "cron"
+      - "dbus"
+      - "rsyslog"
+      - "systemd-journald"
+      - "systemd-timesyncd"
+  
+  security:
+    description: "Security-related services"
+    services:
+      - "apparmor"
+      - "auditd"
+      - "ufw"
+      - "fail2ban"
+  
+  network:
+    description: "Network-related services"
+    services:
+      - "network-manager"
+      - "ssh"
+      - "avahi-daemon"
+  
+  performance:
+    description: "Performance-related services"
+    services:
+      - "irqbalance"
+      - "tlp"
+      - "thermald"
+
+# Service Dependencies
+dependencies:
+  network-manager:
+    requires:
+      - "dbus"
+  
+  ufw:
+    requires:
+      - "network-manager"
+  
+  ssh:
+    requires:
+      - "network.target"
+  
+  cups:
+    requires:
+      - "dbus"
+      - "avahi-daemon"
+
+# Service Timeouts
+timeouts:
+  start: "10s"
+  stop: "10s"
+  restart: "10s"
+  reload: "5s"
+
+# Logging Configuration
+logging:
+  level: "info"  # debug, info, warning, error
+  file: "/var/log/service-manager.log"
+  max_size: "10M"
+  backups: 5
+
+# Backup Configuration
+backup:
+  enabled: true
+  directory: "/var/backups/service-configs"
+  max_backups: 30
+  compress: true
+  include:
+    - "/etc/systemd/system/*.service"
+    - "/lib/systemd/system/*.service"
+    - "/etc/init.d/"
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  check_interval: 300  # seconds
+  restart_failed: true
+  max_restarts: 3
+  restart_delay: 10  # seconds
+  notify_on_failure: false
+  notify_email: ""  # Email address for notifications

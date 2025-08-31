@@ -1,0 +1,9 @@
+[1;33m=== Linux Automation Suite Core Tests ===[0m
+Starting tests at Sat Aug 30 10:57:10 UTC 2025
+System: Linux Marcus 6.6.87.1-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Mon Apr 21 17:08:54 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+Current directory: /mnt/d/Project/Linux Essentials/linux-automation-suite
+----------------------------------------
+
+[0;34m[TEST] Checking bash version[0m
+  Command: bash --version
+  Status: [0;32mPASS[0m

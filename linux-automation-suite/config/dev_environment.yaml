@@ -1,0 +1,114 @@
+# Development Environment Configuration
+# This file contains settings for the dev_setup.sh script
+
+# General Settings
+log_level: "info"
+log_file: "/var/log/dev_setup.log"
+
+# Programming Languages
+python_enabled: true
+python_version: "3.10"
+python_tools: true
+python_data_science: false
+
+nodejs_enabled: true
+nodejs_version: "18"
+nodejs_tools: true
+
+go_enabled: false
+go_version: "1.20"
+
+java_enabled: false
+java_version: "17"
+
+# Development Tools
+docker_enabled: true
+docker_compose_enabled: true
+
+# Database Clients
+databases_enabled: true
+databases:
+  - name: "postgresql"
+    enabled: true
+  - name: "mysql"
+    enabled: true
+  - name: "mongodb"
+    enabled: true
+  - name: "redis"
+    enabled: true
+
+# Cloud Providers
+cloud_enabled: true
+cloud_providers:
+  - name: "aws"
+    enabled: true
+  - name: "gcp"
+    enabled: false
+  - name: "azure"
+    enabled: false
+
+# IDEs and Editors
+editors:
+  - name: "vscode"
+    enabled: true
+  - name: "intellij"
+    enabled: false
+  - name: "pycharm"
+    enabled: false
+  - name: "webstorm"
+    enabled: false
+
+# Version Control
+version_control:
+  git: true
+  git_lfs: true
+  git_flow: true
+  github_cli: true
+  gitkraken: false
+
+# Containerization
+container_tools:
+  docker: true
+  podman: false
+  kubernetes: true
+  helm: true
+  kubectl: true
+  minikube: false
+
+# Testing Frameworks
+testing_frameworks:
+  - name: "pytest"
+    enabled: true
+  - name: "jest"
+    enabled: true
+  - name: "junit"
+    enabled: true
+  - name: "cypress"
+    enabled: false
+
+# Documentation
+documentation_tools:
+  - name: "sphinx"
+    enabled: true
+  - name: "mkdocs"
+    enabled: true
+  - name: "docusaurus"
+    enabled: false
+
+# Performance
+performance_tools:
+  - name: "htop"
+    enabled: true
+  - name: "glances"
+    enabled: true
+  - name: "nmon"
+    enabled: false
+
+# Security
+security_tools:
+  - name: "snyk"
+    enabled: true
+  - name: "trivy"
+    enabled: true
+  - name: "gitleaks"
+    enabled: true

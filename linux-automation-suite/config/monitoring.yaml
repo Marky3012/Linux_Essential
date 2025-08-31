@@ -1,0 +1,235 @@
+# Monitoring Configuration
+# This file contains settings for the system_monitor.sh script
+
+# General Settings
+log_level: "info"
+log_file: "/var/log/system-monitor/monitoring.log"
+
+# Monitoring Intervals (in seconds)
+intervals:
+  metrics: 300       # 5 minutes - System metrics collection
+  alerts: 60         # 1 minute - Alert checking interval
+  report: 86400      # 24 hours - Automatic report generation
+  cleanup: 604800    # 7 days - Log cleanup interval
+
+# Alert Thresholds (percentage)
+thresholds:
+  cpu: 90
+  memory: 85
+  disk: 90
+  swap: 50
+  load: 1.5          # Load average per CPU core
+
+# Logging Configuration
+logging:
+  directory: "/var/log/system-monitor"
+  retention_days: 30
+  max_size_mb: 100
+  compress_old_logs: true
+  
+# Email Notifications
+email:
+  enabled: false
+  smtp_server: "smtp.example.com"
+  smtp_port: 587
+  smtp_user: "user@example.com"
+  smtp_password: "your-password"
+  from: "monitoring@example.com"
+  to: "admin@example.com"
+  ssl: true
+  tls: true
+
+# Monitoring Components
+components:
+  cpu: true
+  memory: true
+  disk: true
+  network: true
+  processes: true
+  services: true
+
+# Process Monitoring
+process_monitoring:
+  enabled: true
+  processes:
+    - name: "nginx"
+      command: "nginx"
+      alert_if_not_running: true
+    - name: "postgresql"
+      command: "postgres"
+      alert_if_not_running: true
+    - name: "redis"
+      command: "redis-server"
+      alert_if_not_running: false
+
+# Disk Monitoring
+disk_monitoring:
+  enabled: true
+  check_mounts:
+    - "/"
+    - "/home"
+    - "/var"
+  ignore_fs_types:
+    - "tmpfs"
+    - "devtmpfs"
+    - "squashfs"
+    - "overlay"
+
+# Network Monitoring
+network_monitoring:
+  enabled: true
+  interfaces:
+    - "eth0"
+    - "wlan0"
+  check_ports:
+    - port: 22
+      name: "SSH"
+      protocol: "tcp"
+    - port: 80
+      name: "HTTP"
+      protocol: "tcp"
+    - port: 443
+      name: "HTTPS"
+      protocol: "tcp"
+
+# Service Monitoring
+service_monitoring:
+  enabled: true
+  services:
+    - name: "nginx"
+      check_type: "process"
+      check_command: "systemctl is-active nginx"
+    - name: "postgresql"
+      check_type: "tcp"
+      check_port: 5432
+    - name: "redis"
+      check_type: "tcp"
+      check_port: 6379
+
+# Alert Configuration
+alerts:
+  email: true
+  slack: false
+  webhook: ""
+  command: ""
+  repeat_interval: 3600  # 1 hour
+
+# Performance Metrics
+metrics:
+  cpu:
+    enabled: true
+    per_core: false
+    include_guest: false
+  memory:
+    enabled: true
+    include_buffers: true
+    include_cached: true
+  disk:
+    enabled: true
+    include_nfs: false
+  network:
+    enabled: true
+    interfaces: ["all"]
+
+# Report Configuration
+reports:
+  daily: true
+  weekly: true
+  monthly: true
+  email_reports: false
+  retention_days: 90
+  include:
+    - "summary"
+    - "cpu"
+    - "memory"
+    - "disk"
+    - "network"
+    - "top_processes"
+
+# External Monitoring Integration
+integrations:
+  prometheus:
+    enabled: false
+    port: 9090
+    metrics_path: "/metrics"
+  grafana:
+    enabled: false
+    url: "http://localhost:3000"
+  telegraf:
+    enabled: false
+    config_path: "/etc/telegraf/telegraf.conf"
+
+# Maintenance Windows
+maintenance_windows:
+  - name: "Weekly Maintenance"
+    enabled: true
+    schedule: "0 2 * * 0"  # Every Sunday at 2 AM
+    duration: 3600          # 1 hour
+    suppress_alerts: true
+
+# Custom Checks
+custom_checks:
+  - name: "Root Disk Space"
+    command: "df -h / | awk 'NR==2 {print $5}' | tr -d '%'"
+    warning: 80
+    critical: 90
+  - name: "Load Average"
+    command: "cat /proc/loadavg | awk '{print $1}'"
+    warning: 1.0
+    critical: 2.0
+
+# Security Monitoring
+security:
+  failed_logins: true
+  ssh_auth_failures: true
+  sudo_commands: true
+  login_attempts: 5
+  block_time: 3600  # 1 hour
+
+# Backup Monitoring
+backup_monitoring:
+  enabled: true
+  checks:
+    - name: "Daily Backup"
+      path: "/var/backups/daily"
+      max_age_hours: 26
+    - name: "Weekly Backup"
+      path: "/var/backups/weekly"
+      max_age_hours: 170
+
+# System Information
+system_info:
+  hostname: ""  # Leave empty to use system hostname
+  location: ""
+  contact: ""
+  tags: []
+
+# Web Interface (if enabled)
+web_interface:
+  enabled: false
+  port: 8080
+  username: "admin"
+  password: ""  # Will be hashed on first run
+  ssl_enabled: false
+  ssl_cert: ""
+  ssl_key: ""
+
+# Performance Tuning
+performance:
+  max_history_points: 10080  # 1 week at 1-minute intervals
+  data_retention_days: 30
+  compress_old_data: true
+  max_threads: 4
+
+# Plugin System
+plugins:
+  enabled: false
+  directory: "/etc/system-monitor/plugins"
+  auto_reload: true
+  
+# Update Configuration
+update_check:
+  enabled: true
+  check_interval: 86400  # 24 hours
+  auto_update: false
+  notify_updates: true
