@@ -5,6 +5,13 @@
 
 set -e
 
+# Safety/test mode: set DRY_RUN=1 in environment to avoid installing/running external tools
+DRY_RUN=${DRY_RUN:-0}
+
+# Default report paths
+REPORT_DIR=${REPORT_DIR:-"$(pwd)/reports"}
+REPORT_FILE=${REPORT_FILE:-"$REPORT_DIR/smart_recon_report.md"}
+
 # ========== CONFIGURATION ==========
 CATEGORIES=(
     "DNS and Domain Intelligence"
@@ -38,11 +45,15 @@ function select_tools() {
     local category="$1"
     local -n tool_array=$2
     local selected_tools=()
-    echo "Select tools for $category (comma separated, e.g. 1,3):"
+    # Print menu to stderr so command substitution calling this function
+    # only captures the final selected tool names (not the menu text).
+    echo "Select tools for $category (comma separated, e.g. 1,3):" >&2
     for i in "${!tool_array[@]}"; do
-        echo "$((i+1)). ${tool_array[$i]}"
+        echo "$((i+1)). ${tool_array[$i]}" >&2
     done
-    read -p "Your choice: " tool_choices
+    # Prompt on stderr and read choice from stdin
+    echo -n "Your choice: " >&2
+    read tool_choices
     IFS=',' read -ra idxs <<< "$tool_choices"
     for idx in "${idxs[@]}"; do
         idx=$((idx-1))
@@ -58,6 +69,11 @@ function check_and_prompt_install() {
     local tool_name="$1"
     if ! command -v "$tool_name" >/dev/null 2>&1; then
         echo "[!] Tool '$tool_name' is not installed."
+        if [[ "$DRY_RUN" == "1" ]]; then
+            echo "DRY_RUN=1: would prompt to install $tool_name — skipping in test mode."
+            SKIPPED_TOOLS+=("$tool_name")
+            return 1
+        fi
         while true; do
             read -p "Do you want to install $tool_name? (y/n): " yn
             case $yn in
@@ -90,13 +106,25 @@ function run_dns_tools() {
         echo "\n## $tool output for $target" >> "$REPORT_FILE"
         case $tool in
             dig)
-                dig "$target" ANY +short >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] dig $target ANY +short" >> "$REPORT_FILE"
+                else
+                    dig "$target" ANY +short >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             nslookup)
-                nslookup "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] nslookup $target" >> "$REPORT_FILE"
+                else
+                    nslookup "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             host)
-                host "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] host $target" >> "$REPORT_FILE"
+                else
+                    host "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
         esac
     done
@@ -111,10 +139,18 @@ function run_network_tools() {
         echo "\n## $tool output for $target" >> "$REPORT_FILE"
         case $tool in
             nmap)
-                nmap -A "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] nmap -A $target" >> "$REPORT_FILE"
+                else
+                    nmap -A "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             fping)
-                fping -c1 "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] fping -c1 $target" >> "$REPORT_FILE"
+                else
+                    fping -c1 "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
         esac
     done
@@ -129,10 +165,18 @@ function run_web_tools() {
         echo "\n## $tool output for $target" >> "$REPORT_FILE"
         case $tool in
             nikto)
-                nikto -host "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] nikto -host $target" >> "$REPORT_FILE"
+                else
+                    nikto -host "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             whatweb)
-                whatweb "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] whatweb $target" >> "$REPORT_FILE"
+                else
+                    whatweb "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
         esac
     done
@@ -147,16 +191,32 @@ function run_email_tools() {
         echo "\n## $tool output for $target" >> "$REPORT_FILE"
         case $tool in
             theharvester)
-                theharvester -d "$target" -b all >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] theharvester -d $target -b all" >> "$REPORT_FILE"
+                else
+                    theharvester -d "$target" -b all >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             infoga)
-                infoga --domain "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] infoga --domain $target" >> "$REPORT_FILE"
+                else
+                    infoga --domain "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             h8mail)
-                h8mail -t "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] h8mail -t $target" >> "$REPORT_FILE"
+                else
+                    h8mail -t "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             crosslinked)
-                crosslinked -d "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] crosslinked -d $target" >> "$REPORT_FILE"
+                else
+                    crosslinked -d "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
         esac
     done
@@ -171,25 +231,53 @@ function run_social_tools() {
         echo "\n## $tool output for $target" >> "$REPORT_FILE"
         case $tool in
             sherlock)
-                sherlock "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] sherlock $target" >> "$REPORT_FILE"
+                else
+                    sherlock "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             social-analyzer)
-                social-analyzer -u "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] social-analyzer -u $target" >> "$REPORT_FILE"
+                else
+                    social-analyzer -u "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             osintgram)
-                osintgram -u "$target" -C all >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] osintgram -u $target -C all" >> "$REPORT_FILE"
+                else
+                    osintgram -u "$target" -C all >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             toutatis)
-                toutatis -u "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] toutatis -u $target" >> "$REPORT_FILE"
+                else
+                    toutatis -u "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             instaloader)
-                instaloader "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] instaloader $target" >> "$REPORT_FILE"
+                else
+                    instaloader "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             twint)
-                twint -u "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] twint -u $target" >> "$REPORT_FILE"
+                else
+                    twint -u "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             socialscan)
-                socialscan "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] socialscan $target" >> "$REPORT_FILE"
+                else
+                    socialscan "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
         esac
     done
@@ -204,10 +292,18 @@ function run_meta_tools() {
         echo "\n## $tool output for $target" >> "$REPORT_FILE"
         case $tool in
             metagoofil)
-                metagoofil -d "$target" -t pdf,doc,xls,ppt -o ./metagoofil_out >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] metagoofil -d $target -t pdf,doc,xls,ppt -o ./metagoofil_out" >> "$REPORT_FILE"
+                else
+                    metagoofil -d "$target" -t pdf,doc,xls,ppt -o ./metagoofil_out >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             exiftool)
-                exiftool "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] exiftool $target" >> "$REPORT_FILE"
+                else
+                    exiftool "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
         esac
     done
@@ -222,13 +318,25 @@ function run_cert_tools() {
         echo "\n## $tool output for $target" >> "$REPORT_FILE"
         case $tool in
             sslscan)
-                sslscan "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] sslscan $target" >> "$REPORT_FILE"
+                else
+                    sslscan "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             sslyze)
-                sslyze "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] sslyze $target" >> "$REPORT_FILE"
+                else
+                    sslyze "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
             testssl.sh)
-                testssl.sh "$target" >> "$REPORT_FILE" 2>&1
+                if [[ "$DRY_RUN" == "1" ]]; then
+                    echo "[DRY_RUN] testssl.sh $target" >> "$REPORT_FILE"
+                else
+                    testssl.sh "$target" >> "$REPORT_FILE" 2>&1
+                fi
                 ;;
         esac
     done
@@ -236,13 +344,53 @@ function run_cert_tools() {
 
 # ========== MAIN LOGIC =============
 
+# Usage/help
+function usage() {
+    cat <<'USAGE'
+Usage: smart_recon.sh [options]
+
+Options:
+  --target <domain|ip>         Non-interactive target to scan
+  --categories <1,2>           Comma-separated category numbers (see script for mapping)
+  --tools <t1,t2>              Comma-separated tool names to run (will be filtered per-category)
+  --dry-run                    Enable dry-run mode (same as DRY_RUN=1)
+  -h, --help                   Show this help
+
+Examples:
+  smart_recon.sh --target example.com --categories 1 --tools dig,host --dry-run
+USAGE
+}
+
+# Parse CLI args for non-interactive runs
+CLI_TARGET=""
+CLI_CATEGORIES=""
+CLI_TOOLS=""
+SUMMARIZE=0
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --target)
+            CLI_TARGET="$2"; shift 2;;
+        --categories|--category)
+            CLI_CATEGORIES="$2"; shift 2;;
+        --tools)
+            CLI_TOOLS="$2"; shift 2;;
+        --dry-run)
+            DRY_RUN=1; shift;;
+        --summarize)
+            SUMMARIZE=1; shift;;
+        -h|--help)
+            usage; exit 0;;
+        *)
+            # unknown / stop parsing
+            break;;
+    esac
+done
+
 mkdir -p "$REPORT_DIR"
-echo "# Smart Recon Report" > "$REPORT_FILE"
-echo "Date: $(date)" >> "$REPORT_FILE"
-echo "" >> "$REPORT_FILE"
+printf "# Smart Recon Report\n" > "$REPORT_FILE"
+printf "Date: %s\n\n" "$(date)" >> "$REPORT_FILE"
 
-read -p "Enter target domain or IP: " TARGET
-
+# Prepare selection containers
 SELECTED_CATEGORIES=()
 SELECTED_TOOLS_DNS=()
 SELECTED_TOOLS_NET=()
@@ -252,43 +400,129 @@ SELECTED_TOOLS_SOCIAL=()
 SELECTED_TOOLS_META=()
 SELECTED_TOOLS_CERT=()
 
-while true; do
-    print_menu
-    read -p "Category number: " cat_choice
-    if [[ "$cat_choice" == "0" ]]; then
-        break
-    fi
-    case $cat_choice in
-        1)
-            SELECTED_TOOLS_DNS=( $(select_tools "DNS and Domain Intelligence" DNS_TOOLS) )
-            ;;
-        2)
-            SELECTED_TOOLS_NET=( $(select_tools "Network Infrastructure" NETWORK_TOOLS) )
-            ;;
-        3)
-            SELECTED_TOOLS_WEB=( $(select_tools "Web Application" WEB_TOOLS) )
-            ;;
-        4)
-            SELECTED_TOOLS_EMAIL=( $(select_tools "Email and Contact Information" EMAIL_TOOLS) )
-            ;;
-        5)
-            SELECTED_TOOLS_SOCIAL=( $(select_tools "Social Media Intelligence" SOCIAL_TOOLS) )
-            ;;
-        6)
-            SELECTED_TOOLS_META=( $(select_tools "Metadata and Document Analysis" META_TOOLS) )
-            ;;
-        7)
-            SELECTED_TOOLS_CERT=( $(select_tools "Certificate and Cryptographic Intelligence" CERT_TOOLS) )
-            ;;
-    esac
-    SELECTED_CATEGORIES+=("${CATEGORIES[$((cat_choice-1))]}")
-done
+# Helper: split CSV into array
+function split_csv() {
+    local IFS=','; read -ra arr <<< "$1"; echo "${arr[@]}"
+}
 
-echo "\n## Target: $TARGET" >> "$REPORT_FILE"
-echo "\n## Selected Categories: ${SELECTED_CATEGORIES[*]}" >> "$REPORT_FILE"
+# Non-interactive path when CLI_TARGET is provided
+if [[ -n "$CLI_TARGET" || -n "$CLI_CATEGORIES" ]]; then
+    TARGET="$CLI_TARGET"
+    # if categories specified, process them
+    if [[ -n "$CLI_CATEGORIES" ]]; then
+        IFS=',' read -ra cat_idxs <<< "$CLI_CATEGORIES"
+        # build a set of CLI tools (global)
+        declare -A CLI_TOOL_SET
+        if [[ -n "$CLI_TOOLS" ]]; then
+            for t in $(split_csv "$CLI_TOOLS"); do
+                CLI_TOOL_SET["$t"]=1
+            done
+        fi
+        for ci in "${cat_idxs[@]}"; do
+            ci_trim=$(echo "$ci" | xargs)
+            case "$ci_trim" in
+                1)
+                    SELECTED_CATEGORIES+=("${CATEGORIES[0]}")
+                    if [[ -n "$CLI_TOOLS" ]]; then
+                        for t in "${DNS_TOOLS[@]}"; do [[ -n "${CLI_TOOL_SET[$t]}" ]] && SELECTED_TOOLS_DNS+=("$t"); done
+                    else
+                        SELECTED_TOOLS_DNS=("${DNS_TOOLS[@]}")
+                    fi
+                    ;;
+                2)
+                    SELECTED_CATEGORIES+=("${CATEGORIES[1]}")
+                    if [[ -n "$CLI_TOOLS" ]]; then
+                        for t in "${NETWORK_TOOLS[@]}"; do [[ -n "${CLI_TOOL_SET[$t]}" ]] && SELECTED_TOOLS_NET+=("$t"); done
+                    else
+                        SELECTED_TOOLS_NET=("${NETWORK_TOOLS[@]}")
+                    fi
+                    ;;
+                3)
+                    SELECTED_CATEGORIES+=("${CATEGORIES[2]}")
+                    if [[ -n "$CLI_TOOLS" ]]; then
+                        for t in "${WEB_TOOLS[@]}"; do [[ -n "${CLI_TOOL_SET[$t]}" ]] && SELECTED_TOOLS_WEB+=("$t"); done
+                    else
+                        SELECTED_TOOLS_WEB=("${WEB_TOOLS[@]}")
+                    fi
+                    ;;
+                4)
+                    SELECTED_CATEGORIES+=("${CATEGORIES[3]}")
+                    if [[ -n "$CLI_TOOLS" ]]; then
+                        for t in "${EMAIL_TOOLS[@]}"; do [[ -n "${CLI_TOOL_SET[$t]}" ]] && SELECTED_TOOLS_EMAIL+=("$t"); done
+                    else
+                        SELECTED_TOOLS_EMAIL=("${EMAIL_TOOLS[@]}")
+                    fi
+                    ;;
+                5)
+                    SELECTED_CATEGORIES+=("${CATEGORIES[4]}")
+                    if [[ -n "$CLI_TOOLS" ]]; then
+                        for t in "${SOCIAL_TOOLS[@]}"; do [[ -n "${CLI_TOOL_SET[$t]}" ]] && SELECTED_TOOLS_SOCIAL+=("$t"); done
+                    else
+                        SELECTED_TOOLS_SOCIAL=("${SOCIAL_TOOLS[@]}")
+                    fi
+                    ;;
+                6)
+                    SELECTED_CATEGORIES+=("${CATEGORIES[5]}")
+                    if [[ -n "$CLI_TOOLS" ]]; then
+                        for t in "${META_TOOLS[@]}"; do [[ -n "${CLI_TOOL_SET[$t]}" ]] && SELECTED_TOOLS_META+=("$t"); done
+                    else
+                        SELECTED_TOOLS_META=("${META_TOOLS[@]}")
+                    fi
+                    ;;
+                7)
+                    SELECTED_CATEGORIES+=("${CATEGORIES[6]}")
+                    if [[ -n "$CLI_TOOLS" ]]; then
+                        for t in "${CERT_TOOLS[@]}"; do [[ -n "${CLI_TOOL_SET[$t]}" ]] && SELECTED_TOOLS_CERT+=("$t"); done
+                    else
+                        SELECTED_TOOLS_CERT=("${CERT_TOOLS[@]}")
+                    fi
+                    ;;
+                *)
+                    echo "Ignoring unknown category: $ci_trim";;
+            esac
+        done
+    fi
+else
+    # interactive path
+    read -p "Enter target domain or IP: " TARGET
+    while true; do
+        print_menu
+        read -p "Category number: " cat_choice
+        if [[ "$cat_choice" == "0" ]]; then
+            break
+        fi
+        case $cat_choice in
+            1)
+                SELECTED_TOOLS_DNS=( $(select_tools "DNS and Domain Intelligence" DNS_TOOLS) )
+                ;;
+            2)
+                SELECTED_TOOLS_NET=( $(select_tools "Network Infrastructure" NETWORK_TOOLS) )
+                ;;
+            3)
+                SELECTED_TOOLS_WEB=( $(select_tools "Web Application" WEB_TOOLS) )
+                ;;
+            4)
+                SELECTED_TOOLS_EMAIL=( $(select_tools "Email and Contact Information" EMAIL_TOOLS) )
+                ;;
+            5)
+                SELECTED_TOOLS_SOCIAL=( $(select_tools "Social Media Intelligence" SOCIAL_TOOLS) )
+                ;;
+            6)
+                SELECTED_TOOLS_META=( $(select_tools "Metadata and Document Analysis" META_TOOLS) )
+                ;;
+            7)
+                SELECTED_TOOLS_CERT=( $(select_tools "Certificate and Cryptographic Intelligence" CERT_TOOLS) )
+                ;;
+        esac
+        SELECTED_CATEGORIES+=("${CATEGORIES[$((cat_choice-1))]}")
+    done
+fi
+
+printf "\n## Target: %s\n" "$TARGET" >> "$REPORT_FILE"
+printf "## Selected Categories: %s\n\n" "${SELECTED_CATEGORIES[*]}" >> "$REPORT_FILE"
 
 if [[ ${#SELECTED_TOOLS_DNS[@]} -gt 0 ]]; then
-    echo "\n# DNS and Domain Intelligence" >> "$REPORT_FILE"
+    printf "# DNS and Domain Intelligence\n" >> "$REPORT_FILE"
     run_dns_tools "$TARGET" "${SELECTED_TOOLS_DNS[@]}"
 fi
 if [[ ${#SELECTED_TOOLS_NET[@]} -gt 0 ]]; then
@@ -324,3 +558,17 @@ if [[ ${#SKIPPED_TOOLS[@]} -gt 0 ]]; then
 fi
 
 echo "\n---\nReport saved to $REPORT_FILE"
+
+# If requested, call the summarizer to create an enhanced report
+if [[ "$SUMMARIZE" -eq 1 ]]; then
+    ENHANCED="$REPORT_DIR/enhanced_$(basename "$REPORT_FILE")"
+    if command -v python3 >/dev/null 2>&1; then
+        if [[ "$DRY_RUN" == "1" ]]; then
+            env DRY_RUN=1 python3 "$(dirname "$0")/summarize_report.py" "$REPORT_FILE" "$ENHANCED"
+        else
+            python3 "$(dirname "$0")/summarize_report.py" "$REPORT_FILE" "$ENHANCED"
+        fi
+    else
+        echo "Python3 not found; cannot summarize report."
+    fi
+fi
