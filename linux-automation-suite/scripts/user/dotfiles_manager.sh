@@ -56,6 +56,30 @@ backup_existing() {
     fi
 }
 
+# Backup existing dotfiles
+backup_dotfiles() {
+    log_info "Backing up existing dotfiles..."
+    # TODO: Implement backup logic for all managed dotfiles
+}
+
+# Restore dotfiles from backup
+restore_dotfiles() {
+    log_info "Restoring dotfiles from backup..."
+    # TODO: Implement restoration logic
+}
+
+# Manage multiple profiles
+manage_profiles() {
+    log_info "Managing dotfiles profiles..."
+    # TODO: Add support for multiple profiles (work, personal, server, etc.)
+}
+
+# Cross-platform compatibility
+cross_platform_support() {
+    log_info "Ensuring cross-platform compatibility..."
+    # TODO: Add logic for Linux/macOS/WSL
+}
+
 # Stow a package
 stow_package() {
     local package=$1

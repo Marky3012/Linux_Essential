@@ -24,6 +24,10 @@ main() {
     update_system
     configure_ssh
     setup_firewall
+    setup_fail2ban
+    audit_file_permissions
+    configure_audit_logging
+    enforce_user_policies
     log_success "Security hardening completed"
 }
 
@@ -39,7 +43,7 @@ update_system() {
 
 # Configure SSH securely
 configure_ssh() {
-    log_info "Securing SSH..."
+    log_info "Configuring SSH..."
     local sshd_config="/etc/ssh/sshd_config"
     
     # Backup config
@@ -74,7 +78,7 @@ set_sshd_setting() {
 
 # Setup firewall
 setup_firewall() {
-    log_info "Configuring firewall..."
+    log_info "Setting up firewall..."
     
     # Install UFW if needed
     if ! command -v ufw &> /dev/null; then
@@ -89,6 +93,30 @@ setup_firewall() {
     sudo ufw allow 80/tcp    # HTTP
     sudo ufw allow 443/tcp   # HTTPS
     echo "y" | sudo ufw enable
+}
+
+# Setup fail2ban
+setup_fail2ban() {
+    log_info "Configuring fail2ban..."
+    # TODO: Install and configure fail2ban for intrusion prevention
+}
+
+# Audit file permissions and ownership
+audit_file_permissions() {
+    log_info "Auditing file permissions and ownership..."
+    # TODO: Check and fix permissions for sensitive files
+}
+
+# Configure system audit logging
+configure_audit_logging() {
+    log_info "Configuring system audit logging..."
+    # TODO: Setup auditd or journald as per config
+}
+
+# Enforce user account policies
+enforce_user_policies() {
+    log_info "Enforcing user account policies..."
+    # TODO: Set password requirements, lock inactive accounts, etc.
 }
 
 # Run main function

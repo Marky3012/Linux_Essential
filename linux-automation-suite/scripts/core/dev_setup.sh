@@ -21,9 +21,18 @@ fi
 # Main function
 main() {
     log_info "Starting development environment setup"
+    parse_arguments "$@"
     install_programming_languages
     install_development_tools
+    install_database_tools
+    install_cloud_tools
     log_success "Development environment setup completed"
+}
+
+# Parse command-line arguments for modular installs
+parse_arguments() {
+    # TODO: Implement argument parsing for --languages, --tools, --databases, --cloud
+    # Example: ./dev_setup.sh --languages python,nodejs --tools docker,vscode --databases postgres
 }
 
 # Install programming languages
@@ -39,6 +48,8 @@ install_programming_languages() {
     if [[ "${dev_nodejs_enabled:-false}" == "true" ]]; then
         install_nodejs
     fi
+    
+    # TODO: Install Go, Rust, Java as per config/args
 }
 
 # Install Python and tools
@@ -80,6 +91,20 @@ install_development_tools() {
         curl -fsSL https://get.docker.com | sh
         sudo usermod -aG docker $USER
     fi
+    
+    # TODO: Install VS Code, tmux, vim/neovim, etc.
+}
+
+# Install database tools
+install_database_tools() {
+    log_info "Installing database tools..."
+    # TODO: Install PostgreSQL, MySQL, Redis, MongoDB, etc.
+}
+
+# Install cloud tools
+install_cloud_tools() {
+    log_info "Installing cloud tools..."
+    # TODO: Install AWS CLI, kubectl, terraform, ansible, etc.
 }
 
 # Run main function

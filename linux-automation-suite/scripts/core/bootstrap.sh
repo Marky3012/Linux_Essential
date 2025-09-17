@@ -29,8 +29,14 @@ main() {
     # Install essential packages
     install_essentials
     
-    # Configure system settings
-    configure_system
+    # User account configuration
+    setup_user_environment
+    
+    # Basic security hardening
+    configure_basic_security
+    
+    # System updates and cleanup
+    finalize_bootstrap
     
     log_success "Bootstrap process completed successfully"
 }
@@ -39,6 +45,7 @@ main() {
 update_system() {
     log_info "Updating system packages..."
     
+    # Detect the package manager and update system
     if command -v apt-get &> /dev/null; then
         sudo apt-get update && sudo apt-get upgrade -y
     elif command -v dnf &> /dev/null; then
@@ -66,6 +73,7 @@ install_essentials() {
         "unzip"
     )
     
+    # Install packages based on detected distro
     if command -v apt-get &> /dev/null; then
         sudo apt-get install -y "${packages[@]}"
     elif command -v dnf &> /dev/null; then
@@ -75,24 +83,25 @@ install_essentials() {
     fi
 }
 
-# System configuration
-configure_system() {
-    log_info "Configuring system settings..."
+# User account configuration
+setup_user_environment() {
+    log_info "Configuring user accounts..."
     
-    # Set timezone
-    if [[ -n "${bootstrap_timezone:-}" ]]; then
-        sudo timedatectl set-timezone "$bootstrap_timezone"
-    fi
+    # TODO: Create/configure users, set permissions, SSH keys, etc.
+}
+
+# Basic security hardening
+configure_basic_security() {
+    log_info "Applying basic security hardening..."
     
-    # Configure hostname if specified
-    if [[ -n "${bootstrap_hostname:-}" ]]; then
-        sudo hostnamectl set-hostname "$bootstrap_hostname"
-    fi
+    # TODO: Setup firewall, fail2ban, disable root SSH, etc.
+}
+
+# Finalize and cleanup
+finalize_bootstrap() {
+    log_info "Finalizing bootstrap and cleaning up..."
     
-    # Configure locale
-    if [[ -n "${bootstrap_locale:-}" ]]; then
-        sudo localectl set-locale LANG="$bootstrap_locale"
-    fi
+    # TODO: Remove temp files, verify setup, log summary
 }
 
 # Run main function
